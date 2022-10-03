@@ -1,16 +1,13 @@
-let allProducts = null;
-
 addEventListener('DOMContentLoaded', apiCall);
 
 function apiCall() {
     fetch('http://localhost:3000/api/products')
-    .then(response => response.json())
-    .then(response => showProduct(response))
+    .then(productList => productList.json())
+    .then(response => showProducts(response))
     .catch(error => console.log("Erreur : " + error));
 }
 
-function showProduct(response) {
-    allProducts = response;
+function showProducts(allProducts) {
     console.log(allProducts);
     const items = document.querySelector('#items');
     console.log(items);
@@ -19,6 +16,7 @@ function showProduct(response) {
         let a = document.createElement('a');
             a.setAttribute('href','./product.html'+ '?id=' + currentProduct._id);
             items.appendChild(a);
+           
         
         let article = document.createElement('article');
             a.appendChild(article);
@@ -35,12 +33,5 @@ function showProduct(response) {
         let p = document.createElement('p');
             p.appendChild(document.createTextNode(currentProduct.description));
             article.appendChild(p);
-        
-        
-    }
-
-    
-   }
-
-   
-
+    }  
+}
