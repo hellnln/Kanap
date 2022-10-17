@@ -1,6 +1,8 @@
 // on recupere l'id du produit selectionne
 let searchParam = new URLSearchParams(window.location.search);
+console.log('searchParam', searchParam);
 addEventListener("DOMContentLoaded", apiCall(searchParam.get("id")));
+console.log('searParam.getId',searchParam.get('id'));
 
 // on recupere les donnees de l'api sur le produit selectionne
 function apiCall(productId) {
@@ -13,8 +15,7 @@ function apiCall(productId) {
 // on cree une fonction pour afficher le produit
 
 function showProduct(product) {
-  console.log(product);
-
+  
   // creation de l'element img
   const itemImg = document.querySelector(".item__img");
 
@@ -43,7 +44,7 @@ function showProduct(product) {
     option.appendChild(document.createTextNode(color));
     option.setAttribute("value", color);
     colorSelector.appendChild(option);
-    console.log('color selector', color);
+    
   }
 }
     
@@ -72,6 +73,7 @@ clickbutton.addEventListener("click", function addBasket(product){
   let basket = getBasket();  // creation de la variable basket qui va executer la fonction getBasket
   let kanapQuantity = Number.parseInt(document.querySelector("#quantity").value); // on recupere la quantite selectionnee et on la transforme ne number
   let kanapColor = document.querySelector("#colors").value; // on recupere la couleur choisie
+ 
   
   // on cree l'objet product pour stocker les donnees 
   product = {
@@ -79,10 +81,13 @@ clickbutton.addEventListener("click", function addBasket(product){
     color : kanapColor,
     quantity : kanapQuantity,
   }
- 
+
+  
   let foundproduct = basket.find(p => p.id == product.id && p.color == product.color); // on cherche dans le tableau basket si l'id et la couleur existe deja
-  if(kanapColor == '' || kanapQuantity <= 0 || kanapQuantity > 100 ) {
-    alert('Veuillez choisir une couleur et une quantite entre 0 et 100'); // on verifie que la couleur et la quantite ont bien ete selectionne
+  if(kanapColor == '') {
+    alert('Veuillez choisir une couleur'); // on verifie que la couleur et la quantite ont bien ete selectionne
+  }else if (kanapQuantity <= 0 || kanapQuantity > 100){
+    alert('Veuillez choisir une quantite entre 0 et 100');
   }else if(foundproduct != undefined){
     foundproduct.quantity += product.quantity; // si foundproduct est different de undefined => le produit existe deja donc on ajoute la quantite a celle dana le panier
   }else{

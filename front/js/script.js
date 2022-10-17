@@ -10,8 +10,7 @@ function apiCall() {
 function showProducts(allProducts) {
     console.log(allProducts);
     const items = document.querySelector('#items');
-    console.log(items);
-
+    
     for(const currentProduct of allProducts){
         let a = document.createElement('a');
             a.setAttribute('href','./product.html'+ '?id=' + currentProduct._id);
