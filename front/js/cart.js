@@ -1,14 +1,14 @@
 
-//on recupere le panier du localStorage
-let basket = JSON.parse(localStorage.getItem('basket'));
-console.log('panier', basket);
+/**on recupere le panier du localStorage */
+let basket = getBasket();
 
+/** Creation d'un objet pour stocker les prix provenant de l'API */
 let productsPrices = {};
 
-
+/**Quand le DOM est charge on lance la fonction apicall() */
 addEventListener('DOMContentLoaded', apiCall);
 
-// recuperation des donnees de l'api
+/** Recuperation des donnees de l'API */ 
 function apiCall() {
   fetch('http://localhost:3000/api/products')
     .then(productList => productList.json())
@@ -16,19 +16,22 @@ function apiCall() {
     .catch(error => console.log("Erreur : " + error));
 }
 
-
-function showProducts(response) { // on recupere la reponse de l'api
-  const allProductsFromApi = response; // on stocke la reponse de l'api dans la variable productsFromAPI
-  console.log('api', allProductsFromApi);
-
+/**
+ * La fonction showProducts permet d'afficher les produits recupere depuis l'api
+ * @param {object} response : version json de la reponse de l'api
+*/
+function showProducts(response) { 
+  const allProductsFromApi = response;
+  
   const section = document.getElementById("cart__items");
-  // on fait une boucle sur les produits du panier
+  // on fait une boucle sur les produits du panier pour creer les elements HTML pour chaque produit
   for (const product of basket) {
 
-    // creation d'une variable productFromApi pour rechercher dans les produits de l'api
-    // le produit avec le meme id que le produit dans le panier
     const productFromApi = allProductsFromApi.find((singleProduct) => product.id === singleProduct._id);
+   
+    // a reexpliquer !!!
     productsPrices[productFromApi._id] = productFromApi.price
+
     //creation des elements HTML pour afficher le panier   
     let article = document.createElement('article');
     article.setAttribute('data-id', product.id);
@@ -114,21 +117,32 @@ function showProducts(response) { // on recupere la reponse de l'api
   
 }
 
-// on filtre sur les produits different de l'article a supprimer
+/**
+ * Fonction pour supprimer un produit du panier en filtrant sur les produits que l'on veut conserver
+ * Appelee par le addEventListener('click', ) de l'element ayant la classe 'deleteItem'
+ * @param { string } productId 
+ * @param { string } productColor 
+ */
 function removeFromBasket(productId, productColor) {
   let basket = getBasket();
   basket = basket.filter(productToKeep => productToKeep.id != productId || productToKeep.color != productColor);
   saveBasket(basket);
   location.reload();
 }
-
+/**
+ * Fonction pour modifier la quantite dans le panier d'un produit
+ * Fonction appelee par le addEventListener('change' ) de l'element input ayant pour class 'itemQuantity'
+ * @param {string} item 
+ * @param {string} id 
+ * @param {string} color 
+ */
 function changeQuantity(item, id, color) {
   let basket = getBasket();
   let newQuantity = Number(item.value);
-  let foundproduct = basket.find(product => product.id == id && product.color == color); // on cherche dans le tableau basket le produit dont la quantite a change
+  let foundproduct = basket.find(product => product.id == id && product.color == color);
 
-  if (foundproduct != undefined) {  // si foundproduct est different de undefined (le produit exsite) et newQuantity >= a 0
-    foundproduct.quantity = newQuantity; // on change la quantite par la nouvelle quantity saisie  
+  if (foundproduct != undefined) {  
+    foundproduct.quantity = newQuantity;  
     if (foundproduct.quantity <= 0) {
       foundproduct.quantity = item.value = 1;
     }
@@ -136,6 +150,10 @@ function changeQuantity(item, id, color) {
   saveBasket(basket);
 };
 
+/**
+* La fonction getBasket() permet de recupere le panier stocke dans le localStorage
+* @returns {basket[]} 
+*/
 function getBasket() {
   let basket = localStorage.getItem('basket');
   if (basket == null) {
@@ -145,11 +163,19 @@ function getBasket() {
     return JSON.parse(basket);
   }
 }
- 
+
+/**
+ * La fonction saveBasket() permet d'enregistrer le panier dans le localStorage
+ * @param {Array} basket 
+ */
 function saveBasket(basket) {
   localStorage.setItem('basket', JSON.stringify(basket));
 }
 
+/**
+ * Fonction pour calculer le nombre total de produit dans le panier
+ * @returns {number} le nombre total de produit dans le panier
+ */
 function getTotalQuantity() {
   let basket = getBasket();
   let number = 0;
@@ -161,6 +187,10 @@ function getTotalQuantity() {
   return number;
 }
 
+/**
+ * Fonction pour calculer le prix total du panier
+ * @returns {number} totalPrice
+ */
 function getTotalPrice() {
   let basket = getBasket();
   let totalPrice = 0;
@@ -172,6 +202,9 @@ function getTotalPrice() {
   return totalPrice;
 }
 
+/**
+ * Fonction qui permet de mettre a jour la quantite totale et le prix total du panier 
+ */
 function displayCartTotal() {
   let totalQuantity = document.querySelector('#totalQuantity');
   totalQuantity.replaceChildren(document.createTextNode(getTotalQuantity()));
@@ -180,82 +213,121 @@ function displayCartTotal() {
   totalPrice.replaceChildren(document.createTextNode(getTotalPrice()));
 }
 
+/**
+ * Fonction qui permet de recuperer les donnees de contact saisies dans le formulaire
+ * @returns {object}
+ */
+function getContact() {
 
-
-// click order
-let clickOrder = document.querySelector("#order");
-clickOrder.addEventListener("click", function sendInfos(event){
-  event.preventDefault()
-
-  // recuperer les infos du formulaire et alimenter un object contact
   const contact = {
-    firstName: document.querySelector('#firstName').value,
-    lastName: document.querySelector('#lastName').value,
-    address: document.querySelector('#address').value,
-    city: document.querySelector('#city').value,
-    email: document.querySelector('#email').value,
+        firstName: document.querySelector('#firstName').value,
+        lastName: document.querySelector('#lastName').value,
+        address: document.querySelector('#address').value,
+        city: document.querySelector('#city').value,
+        email: document.querySelector('#email').value,
+  }
+      return contact;
+}
+
+/**
+ * Fonction pour effectuer les verifications du formulaire grace aux regex
+ * @returns 
+ */
+function checkErrors() {
+  
+  let contact = getContact();
+  
+  const formFields = [
+    {
+      property: 'firstName',
+      regex: /[a-zA-Z]+/g,
+      id: 'firstNameErrorMsg',
+      errorMessage: 'Veuillez saisir un prénom valide.'
+    },
+    {
+      property: 'lastName',
+      regex: /[a-zA-Z]+/g,
+      id: 'lastNameErrorMsg',
+      errorMessage: 'Veuillez saisir un nom valide.'
+    },
+    {
+      property: 'address',
+      regex: /^[a-zA-z0-9\s',-]+$/g,
+      id: 'addressErrorMsg',
+      errorMessage: 'Veuillez saisir une adresse valide.'
+    },
+    {
+      property: 'city',
+      regex: /[a-zA-Z]+/g,
+      id: 'cityErrorMsg',
+      errorMessage: 'Veuillez saisir un ville valide.'
+    },
+    {
+      property: 'email',
+      regex: /.+@.+\.[a-z]+/g,
+      id: 'emailErrorMsg',
+      errorMessage: 'Veuillez saisir un eMail valide.'
+    },
+  ]
+
+  const errors = {
+    firstName: true,
+    lastName: true,
+    address: true,
+    city: true,
+    email: true,
   }
 
-  // recuperer les id du basket pour alimenter le tableau products
+  formFields.forEach((item) => {
+    if (!contact[item.property].match(item.regex)) {
+      document.getElementById(item.id).innerHTML=item.errorMessage;
+    } else {
+      document.getElementById(item.id).innerHTML='';
+      errors[item.property] = false;
+    }
+  })
+
+  const areFalse = Object.values(errors).every(
+    value => value === false
+  );
+  return areFalse
+}
+
+
+/**
+ * Fonction sendInfos() appelee au clic sur btn commander
+ */
+let clickOrder = document.querySelector("#order");
+clickOrder.addEventListener("click", function sendInfos(event){
+  event.preventDefault();
+
+  let contact = getContact();
   let basket = getBasket();
+  
   let products = []
   for (const item of basket) {
     let id = item.id;
     products.push(id); 
   }
-   
-  // creation d'un objet body qui regroupe les infos de contact et les id des produits du panier
-  let body = {
-    contact,
-    products
-  }
- 
-   // si mauvais format dans formulaire de contact alors erreur
-  if (!contact.email.match(/.+@.+\.[a-z]+/g)) {
-    document.getElementById('emailErrorMsg').innerHTML='Veuillez saisir un eMail valide.';
-  } else {
-    document.getElementById('emailErrorMsg').innerHTML='';
-  }
-  if (!contact.firstName.match(/[a-zA-Z]+/g)) {
-    document.getElementById('firstNameErrorMsg').innerHTML='Veuillez saisir votre prénom.';
-  } else {
-    document.getElementById('firstNameErrorMsg').innerHTML='';
-  }
-  if (!contact.lastName.match(/[a-zA-Z]+/g)) {
-    document.getElementById('lastNameErrorMsg').innerHTML='Veuillez saisir votre nom.';
-  } else {
-    document.getElementById('lastNameErrorMsg').innerHTML='';
-  }
-  if (!contact.address.match(/.+/g)) {
-    document.getElementById('addressErrorMsg').innerHTML='Veuillez saisir une adresse valide.';
-  } else {
-    document.getElementById('addressErrorMsg').innerHTML='';
-  } 
-  if (!contact.city.match(/[a-zA-Z]+/g)) {
-    document.getElementById('cityErrorMsg').innerHTML='Veuillez saisir votre ville.';
-  } else {
-    document.getElementById('cityErrorMsg').innerHTML='';
-   // sinon envoyer les infos de commande accompagnees des infos de contact
-         // fetch en POST avec les bons parametres
-      fetch('http://localhost:3000/api/products/order', {
-        method: 'POST',
-        body: JSON.stringify(body),
-        headers: {
-          'Content-Type': 'application/json;charset=utf-8'
-        },
-      })
-      .then((response)=> response.json())
-      .then((data)=> {
-        console.log('orderId', data.orderId);
-        // recuperer num de commande
-        // rediriger vers page de confirmation?commande=123456
-        window.location = `confirmation.html?orderId=${data.orderId}`;
-        // on vide le local storage
-        localStorage.clear();
 
-      }
-  )}})
-
-
-
- 
+  const isFreeOfErrors = checkErrors()
+  
+  // si isFreeOfErrors = true alors on lance la requete fetch
+  if (isFreeOfErrors) {
+    fetch('http://localhost:3000/api/products/order', {
+      method: 'POST',
+      body: JSON.stringify({
+        contact,
+        products
+      }),
+      headers: {
+        'Content-Type': 'application/json;charset=utf-8'
+      },
+    })
+    .then((response)=> response.json())
+    .then((data)=> {
+      console.log('orderId', data.orderId);
+      window.location = `confirmation.html?orderId=${data.orderId}`;
+    }) 
+  }
+})
